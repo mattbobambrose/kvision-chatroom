@@ -25,7 +25,7 @@ val ktorVersion: String by project
 val logbackVersion: String by project
 
 val webDir = file("src/frontendMain/web")
-val mainClassName = "io.ktor.server.netty.EngineMain"
+val mainClassName = "io.ktor.server.cio.EngineMain"
 
 kotlin {
     jvm("backend") {
@@ -67,7 +67,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                api("io.kvision:kvision-server-ktor-koin:$kvisionVersion")
+                api("io.kvision:kvision-server-ktor:$kvisionVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:$datetimeVersion")
             }
         }
@@ -80,9 +80,10 @@ kotlin {
         val backendMain by getting {
             dependencies {
                 implementation(kotlin("reflect"))
-                implementation("io.ktor:ktor-server-netty:$ktorVersion")
+                implementation("io.ktor:ktor-server-cio:$ktorVersion")
                 implementation("io.ktor:ktor-server-auth:$ktorVersion")
                 implementation("io.ktor:ktor-server-compression:$ktorVersion")
+                implementation("io.ktor:ktor-server-websockets:$ktorVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
             }
         }

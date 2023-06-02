@@ -6,12 +6,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ChatMessage(
-    val message: String,
-    val user: String,
+    val untimedMessage: UntimedMessage
 ) {
     val timestamp: Instant = Clock.System.now()
 
     fun displayMessage(): String {
-        return "$user said: $message"
+        return "${untimedMessage.username} said: ${untimedMessage.message}"
     }
 }

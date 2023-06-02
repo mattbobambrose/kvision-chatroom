@@ -8,29 +8,30 @@ import io.kvision.modal.Alert
 import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.utils.ENTER_KEY
+import io.kvision.utils.px
 import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlin.time.Duration.Companion.seconds
 
 val AppScope = CoroutineScope(window.asCoroutineDispatcher())
 
 class App : Application() {
-
+    val sendChannel = Channel<UntimedMessage> { }
+    val receiveChannel = Channel<ChatMessage> { }
     override fun start(state: Map<String, Any>) {
-        val root = root("kvapp") {
+        WsModel.connectToWebSocket(sendChannel, receiveChannel)
+        root("kvapp") {
             vPanel {
+                marginLeft = 50.px
                 val usernameBox = text {
                     label = "Username"
                     placeholder = "What is your name?"
                 }
                 val messageBox = text { placeholder = "What would you like to talk about?" }
-                val chatHistory = vPanel {
+                val chatHistory = vPanel {}
 
-                }
                 messageBox.onEvent {
                     keydown = { it ->
                         if (it.keyCode == ENTER_KEY) {
@@ -38,37 +39,45 @@ class App : Application() {
                             if (message.isBlank()) {
                                 Alert.show("Please enter a message")
                             } else {
-                                AppScope.launch {
-                                    val username =
-                                        usernameBox.value.orEmpty().let {
-                                            it.ifBlank {
-                                                usernameBox.value = ""
-                                                "Anonymous"
-                                            }
+                                val username =
+                                    usernameBox.value.orEmpty().let {
+                                        it.ifBlank {
+                                            usernameBox.value = ""
+                                            "Anonymous"
                                         }
-                                    Model.postMessage(message, username)
+                                    }
+                                AppScope.launch {
+                                    sendChannel.send(UntimedMessage(message, username))
                                 }
                                 messageBox.value = ""
                             }
                         }
                     }
                 }
+
                 AppScope.launch {
-                    var lastTimeChecked: Instant = Instant.DISTANT_PAST
-                    while (true) {
-                        runCatching {
-                            val timedList = Model.getMessages(lastTimeChecked)
-                            lastTimeChecked = timedList.lastTimeChecked
-                            timedList.messages.forEach { chatMessage ->
-                                chatHistory.add(Span(chatMessage.displayMessage()))
-                            }
-                        }.onFailure { e ->
-                            println(e)
-                        }
-                        delay(1.seconds)
+                    for (message in receiveChannel) {
+                        chatHistory.add(Span(message.displayMessage()))
                     }
                 }
 
+                /*
+                                AppScope.launch {
+                                    var lastTimeChecked: Instant = Instant.DISTANT_PAST
+                                    while (true) {
+                                        runCatching {
+                                            val timedList = Model.getMessages(lastTimeChecked)
+                                            lastTimeChecked = timedList.lastTimeChecked
+                                            timedList.messages.forEach { chatMessage ->
+                                                chatHistory.add(Span(chatMessage.displayMessage()))
+                                            }
+                                        }.onFailure { e ->
+                                            println(e)
+                                        }
+                                        delay(1.seconds)
+                                    }
+                                }
+                */
             }
         }
     }

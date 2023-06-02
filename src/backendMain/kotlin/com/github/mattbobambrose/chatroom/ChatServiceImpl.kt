@@ -6,11 +6,10 @@ import kotlinx.datetime.Instant
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 
 actual class ChatService : IChatService {
-    override suspend fun postMessage(message: String, username: String): String {
-        println(message)
-        val chatMessage = ChatMessage(message, username)
+    override suspend fun postMessage(untimedMessage: UntimedMessage): String {
+        val chatMessage = ChatMessage(untimedMessage)
         ServerContext.messages.add(chatMessage)
-        return "$username said: $message"
+        return "${chatMessage.untimedMessage.username} said: ${chatMessage.untimedMessage.message}"
     }
 
     override suspend fun getMessages(lastTimeChecked: Instant): TimedList {

@@ -8,7 +8,7 @@ object Model {
     private val chatService = getService<IChatService>()
 
     suspend fun postMessage(message: String, username: String): String {
-        return chatService.postMessage(message, username)
+        return chatService.postMessage(UntimedMessage(message, username))
     }
 
     suspend fun getMessages(lastTimeChecked: Instant): TimedList {
