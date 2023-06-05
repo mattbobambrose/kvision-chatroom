@@ -11,6 +11,8 @@ import io.kvision.panel.root
 import io.kvision.panel.vPanel
 import io.kvision.rest.RestClient
 import io.kvision.rest.call
+import io.kvision.state.ObservableValue
+import io.kvision.state.bind
 import io.kvision.utils.ENTER_KEY
 import io.kvision.utils.px
 import kotlinx.browser.window
@@ -26,7 +28,8 @@ val AppScope = CoroutineScope(window.asCoroutineDispatcher())
 class App : Application() {
     val sendChannel = Channel<ChatMessage> { }
     val receiveChannel = Channel<ChatMessage> { }
-    private val restClient = RestClient()
+    val restClient = RestClient()
+    val connected = ObservableValue(false)
 
     override fun start(state: Map<String, Any>) {
         AppScope.launch {
@@ -36,6 +39,7 @@ class App : Application() {
             println("BrowserSessionResponse: $id")
 
             WsModel.connectToWebSocket(sendChannel, receiveChannel)
+            connected.value = true
         }
 
         root("kvapp") {
@@ -46,16 +50,26 @@ class App : Application() {
                     placeholder = "What is your name?"
                 }
 
-                val roomChoice = select {
-                    label = "Room"
-                    options = listOf(
-                        "Room 1" to "Room 1",
-                        "Room 2" to "Room 2",
-                        "Room 3" to "Room 3"
-                    )
-                }
+                val roomChoice =
+                    select {
+                        label = "Room"
+                        options = listOf(
+                            "Room 1" to "Room 1",
+                            "Room 2" to "Room 2",
+                            "Room 3" to "Room 3"
+                        )
+                        bind(connected) {
+                            disabled = !it
+                        }
+                    }
 
-                val messageBox = text { placeholder = "What would you like to talk about?" }
+                val messageBox =
+                    text {
+                        placeholder = "What would you like to talk about?"
+                        bind(connected) {
+                            disabled = !it
+                        }
+                    }
                 val chatHistory = vPanel {}
 
                 roomChoice.onChange {

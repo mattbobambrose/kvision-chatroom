@@ -111,6 +111,7 @@ kotlin {
                 implementation("io.kvision:kvision-bootstrap:$kvisionVersion")
                 implementation("io.kvision:kvision-fontawesome:$kvisionVersion")
                 implementation("io.kvision:kvision-rest:$kvisionVersion")
+                implementation("io.kvision:kvision-state:$kvisionVersion")
             }
         }
         val frontendTest by getting {
