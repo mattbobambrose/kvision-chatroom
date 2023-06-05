@@ -11,9 +11,9 @@ object WsModel {
 
     private val service = getService<IWsService>()
 
-    fun connectToWebSocket(sendChannel: Channel<UntimedMessage>, receiveChannel: Channel<ChatMessage>) {
+    fun connectToWebSocket(sendChannel: Channel<ChatMessage>, receiveChannel: Channel<ChatMessage>) {
         AppScope.launch {
-            service.openBidirChannel { output: SendChannel<UntimedMessage>, input: ReceiveChannel<ChatMessage> ->
+            service.openBidirChannel { output: SendChannel<ChatMessage>, input: ReceiveChannel<ChatMessage> ->
                 coroutineScope {
                     launch {
                         while (true) {

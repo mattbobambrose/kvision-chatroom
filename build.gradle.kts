@@ -23,6 +23,10 @@ val kvisionVersion: String by System.getProperties()
 val datetimeVersion: String by project
 val ktorVersion: String by project
 val logbackVersion: String by project
+val hikariVersion: String by project
+val pgjdbcVersion: String by project
+val postgresVersion: String by project
+val exposedVersion: String by project
 
 val webDir = file("src/frontendMain/web")
 val mainClassName = "io.ktor.server.cio.EngineMain"
@@ -50,6 +54,7 @@ kotlin {
                     open = false,
                     port = 3000,
                     proxy = mutableMapOf(
+                        "/assign-browser-id" to "http://localhost:8080",
                         "/kv/*" to "http://localhost:8080",
                         "/kvws/*" to mapOf("target" to "ws://localhost:8080", "ws" to true)
                     ),
@@ -85,6 +90,12 @@ kotlin {
                 implementation("io.ktor:ktor-server-compression:$ktorVersion")
                 implementation("io.ktor:ktor-server-websockets:$ktorVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
+                implementation("com.zaxxer:HikariCP:$hikariVersion")
+                implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng-all:$pgjdbcVersion")
+                implementation("org.postgresql:postgresql:$postgresVersion")
+                implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+                implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+                implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
             }
         }
         val backendTest by getting {
@@ -99,6 +110,7 @@ kotlin {
                 implementation("io.kvision:kvision:$kvisionVersion")
                 implementation("io.kvision:kvision-bootstrap:$kvisionVersion")
                 implementation("io.kvision:kvision-fontawesome:$kvisionVersion")
+                implementation("io.kvision:kvision-rest:$kvisionVersion")
             }
         }
         val frontendTest by getting {

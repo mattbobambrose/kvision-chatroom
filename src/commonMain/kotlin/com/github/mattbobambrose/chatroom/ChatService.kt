@@ -5,6 +5,7 @@ import kotlinx.datetime.Instant
 
 @KVService
 interface IChatService {
-    suspend fun postMessage(untimedMessage: UntimedMessage): String
+    suspend fun postMessage(chatMessage: ChatMessage): String
     suspend fun getMessages(lastTimeChecked: Instant): TimedList
+    suspend fun changeRoom(room: String): String
 }
