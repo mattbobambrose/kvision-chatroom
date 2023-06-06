@@ -7,3 +7,9 @@ class BrowserSessionResponse(
     val id: String,
     val msg: String,
 )
+
+@Serializable
+class RoomIdentifier(
+    val id: Int,
+    val room: String,
+)

@@ -4,8 +4,8 @@ import com.github.pambrose.kvision_websockets.BrowserSession
 import com.google.inject.Inject
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 
@@ -13,30 +13,23 @@ actual class ChatService : IChatService {
     @Inject
     lateinit var call: ApplicationCall
 
-    override suspend fun postMessage(chatMessage: ChatMessage): String {
-        /*
-                val chatMessage = ChatMessage(chatMessage)
-                return "${chatMessage.untimedMessage.username} said: ${chatMessage.untimedMessage.message}"
-        */
-        return ""
-    }
-
-    override suspend fun getMessages(lastTimeChecked: Instant): TimedList {
-        /*
-                println("Messages: ${ServerContext.messages.joinToString(" ")}")
-                return TimedList(Clock.System.now(), ServerContext.messages.filter {
-                    it.timestamp > lastTimeChecked
-                })
-        */
-        return TimedList(Clock.System.now(), emptyList())
-    }
-
-    override suspend fun changeRoom(room: String): String {
+    override suspend fun changeRoom(roomId: Int): String {
         val browserSession = call.sessions.get<BrowserSession>() ?: error("No BrowserSession found")
         val id = browserSession.id
+        println("Browser session id: $id")
         val wsService = WsService.instanceMap[id] ?: error("No WsService found for $id")
-        wsService.roomName = room
+        wsService.currentRoomRef = roomId
         wsService.refreshMessages()
-        return "Room changed to $room"
+        return "Room changed to $roomId"
     }
+
+    override suspend fun getRoomNames() =
+        transaction {
+            RoomsTable.selectAll().map {
+                RoomIdentifier(
+                    it[RoomsTable.id].value,
+                    it[RoomsTable.name]
+                )
+            }
+        }
 }

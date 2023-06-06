@@ -19,7 +19,7 @@ actual class WsService : IWsService {
     @Inject
     lateinit var wsSession: WebSocketServerSession
 
-    var roomName = ""
+    var currentRoomRef = -1
     val outputChannel = Channel<ChatMessage>()
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,8 +43,8 @@ actual class WsService : IWsService {
             }
 
             launch {
-                // Return previous messages
-                refreshMessages()
+//                 Return previous messages
+//                refreshMessages()
 
                 // Saves and distributes messages
                 for (msg in input) {
@@ -52,7 +52,7 @@ actual class WsService : IWsService {
                     transaction {
                         MessagesTable.insert {
                             it[username] = msg.username
-                            it[room] = msg.room
+                            it[roomRef] = msg.roomId
                             it[message] = msg.message
                         }
                     }
@@ -68,12 +68,12 @@ actual class WsService : IWsService {
 
     suspend fun refreshMessages() {
         transaction {
-            MessagesTable.select { MessagesTable.room eq roomName }
+            MessagesTable.select { MessagesTable.roomRef eq currentRoomRef }
                 .map { msg ->
                     val username = msg[MessagesTable.username]
-                    val room = msg[MessagesTable.room]
+                    val roomId = msg[MessagesTable.roomRef]
                     val message = msg[MessagesTable.message]
-                    ChatMessage(username, room, message)
+                    ChatMessage(username, roomId, message)
                 }
         }.forEach {
             outputChannel.send(it)
